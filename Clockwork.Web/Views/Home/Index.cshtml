@@ -1,0 +1,86 @@
+﻿<script>function UserAction() {
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            document.getElementById("output").innerHTML = this.responseText;
+        }
+    };
+    xhttp.open("GET", "http://127.0.0.1:5000/api/currenttime", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+
+}</script>
+<nav class="navbar sticky-top navbar-dark bg-primary">
+    <a class="navbar-brand" href="#">AWH Clockwork Project @ViewData["Version"]</a>
+</nav>
+<div class="container-fluid" ng-app="app" ng-controller="HomeController as data">
+    <div class="row">
+        <div class="col-sm-12 col-xl-5 sticky-sidebar">
+            <div class="shadow alert alert-info mt-3">
+                <h3 class="alert-heading">Instructions</h3>
+                <hr />
+                Choose a timezone then press the Get the Time button to request the current time for the selected timezone
+            </div>
+            <br />
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text">Select a Timezone</label>
+                </div>
+                <select class="custom-select" ng-options="timezone.displayName for timezone in data.timezones track by timezone.id" ng-model="selectedTimezone"></select>
+                <div class="input-group-append">
+                    <button class="btn btn-outline-primary" ng-click="getCurrentTime(true, 1, selectedPageSize, 'desc')" type="button">Get the time</button>
+                </div>
+            </div>
+            <br />
+            <div class="shadow alert alert-danger" ng-show="error">
+                <h3 class="alert-heading">Oops! Something Went Wrong!</h3>
+                <hr />
+                {{error}}
+            </div>
+            <div class="shadow alert alert-success" ng-show="data.timeRequested">
+                <p class="alert-heading text-muted">Current time in selected timezone</p>
+                <h1>{{data.timeRequested.time | date:'medium'}}</h1>
+                <hr />
+                <h6 class="text-muted text-left"><small>Time Request #{{data.timeRequested.currentTimeQueryId}} | Client IP: {{data.timeRequested.clientIp}} | UTC Time: {{data.timeRequested.utcTime.replace('Z', '') | date: 'medium'}}</small></h6>
+            </div>
+        </div>
+        <div class="col-sm-12 col-xl-7 border-left">
+            <div class="btn-toolbar justify-content-between mt-3" role="toolbar">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-secondary" ng-disabled="!hasPrevious" ng-click="getCurrentTime(false, prevPage, selectedPageSize, selectedSort)">Previous</button>
+                    <button type="button" class="btn btn-secondary" ng-disabled="!hasNext" ng-click="getCurrentTime(false, nextPage, selectedPageSize, selectedSort)">Next</button>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" ng-click="changeSort('asc')"  ng-class="selectedSort === 'asc' ? 'btn btn-outline-secondary active' : 'btn btn-outline-secondary'">Ascending</button>
+                    <button type="button" ng-click="changeSort('desc')" ng-class="selectedSort === 'desc' ? 'btn btn-outline-secondary active' : 'btn btn-outline-secondary'">Descending</button>
+                </div>
+                <div class="input-group">
+                    <div class="btn-group" role="group">
+                        <button type="button" ng-class="selectedPageSize === 10 ? 'btn btn-outline-secondary active' : 'btn btn-outline-secondary'" ng-click="changePageSize(10)">10</button>
+                        <button type="button" ng-class="selectedPageSize === 25 ? 'btn btn-outline-secondary active' : 'btn btn-outline-secondary'" ng-click="changePageSize(25)">25</button>
+                        <button type="button" ng-class="selectedPageSize === 50 ? 'btn btn-outline-secondary active' : 'btn btn-outline-secondary'" ng-click="changePageSize(50)">50</button>
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive mt-3">
+                <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Client Time Query ID</th>
+                            <th>Time</th>
+                            <th>Client IP</th>
+                            <th>UTC Time</th>
+                        </tr>
+                    </thead>
+                    <tr ng-repeat="item in data.currentTimeQueries track by $index">
+                        <td>{{item.currentTimeQueryId}}</td>
+                        <td>{{item.time | date:'medium'}}</td>
+                        <td>{{item.clientIp}}</td>
+                        <td>{{item.utcTime.replace('Z', '') | date: 'medium'}}</td>
+                    </tr>
+                </table>
+            </div>
+            <p class="h6 text-muted">Page {{currentPage}} out of {{totalPages}} pages</p>
+        </div>
+    </div>
+</div>
